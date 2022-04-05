@@ -72,6 +72,94 @@ event1356 %>%
   #                                  pattern = "^[0-9]{3,}"))
 ```
 
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+         #postcode = 
+           ) %>% 
+  filter(str_detect(postcode, pattern = "^[0-9]{3,}"))
+```
+
+
+69005 45.7583° N, 4.7991° E Lyon
+20159 45.4982° N, 9.1918° E Milan
+08015 41.3786° N, 2.1524° E Barcelona
+75018 48.8913° N, 2.3530° E Paris
+97330 44.6385° N, 123.2929° W Oregon
+74960 35.7837° N, 94.6037° W Oklahoma
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "[0-9]+[A-Z]{2}$"),
+        gsub(postcode, "(^[A-Z]{2}+[0-9]{1,})([0-9]{1}+[A-Z]{2}$)", 
+             "\\1 \\2", gsub(" ", "", postcode)), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+```
+
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "[0-9]+[A-Z]{2}$"),
+        gsub("(^[A-Z]{2}+[0-9]{1,})([0-9]{1}+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "^[A-Z]{2}+[0-9]{1,}+[0-9]+[A-Z]{2}$"),
+        gsub("([0-9])([0-9]+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+  
+  Error: Problem with `mutate()` column `postcode`.
+i `postcode = if_else(...)`.
+x argument "x" is missing, with no default
+  
+  event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "[0-9]{2}+[A-Z]{2}$"),
+        gsub(postcode, "(^[A-Z]{2}+[0-9])([0-9]{1}+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+  
+  event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "^[A-Z]{2}+[0-9]{1,}+[0-9]+[A-Z]{2}$"),
+        gsub(postcode, "(^[A-Z]{2}+[0-9])([0-9]{1}+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+  
+  Warning: Problem with `mutate()` column `postcode`.
+i `postcode = if_else(...)`.
+i argument 'pattern' has length > 1 and only the first element will be used
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = case_when(
+          postcode %in% "[0-9]{2}+[A-Z]{2}$" ~ " [0-9]+[A-Z]{2}$",
+          TRUE ~ postcode)
+           ) %>%
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+```
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = case_when(
+          postcode %in% "[0-9]{2}+[A-Z]{2}$" ~ gsub(postcode,
+                                      "(^[A-Z]{2}+[0-9])([0-9]{1}+[A-Z]{2}$)", 
+                                      "\\1 \\2", postcode),
+          TRUE ~ postcode)
+           ) %>%
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+```
 
 
 ```{r}
