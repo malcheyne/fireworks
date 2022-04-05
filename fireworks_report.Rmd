@@ -1,0 +1,179 @@
+---
+title: "Stirling & Bridge of Allan Round Table"
+output: 
+  html_document:
+    df_print: paged
+    code_folding: hide
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+<style>
+div.hidecode + pre {display: none}
+</style>
+<script>
+doclick=function(e){
+e.nextSibling.nextSibling.style.display="block";
+}
+</script>
+
+<center>
+![](images/table.png)
+</center>
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, 
+                      message = FALSE, fig.align = 'center')
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(leaflet)
+library(readxl)
+library(lubridate)
+library(stringi)
+```
+
+```{r}
+summary <- read_excel(
+              "raw_data/BridgeofAllanCharityBonfireNight_2021-11-08.xlsx", 
+              sheet = "Daily Summary")
+
+event1356 <- read_excel(
+              "raw_data/BridgeofAllanCharityBonfireNight_2021-11-08.xlsx", 
+              sheet = "Event1356",
+              skip = 7) %>% 
+              clean_names() 
+
+event1356 <- event1356[-1,]
+event1356
+```
+
+```{r}
+
+```
+
+```{r}
+tail(event1356)
+```
+
+```{r}
+summary(event1356)  
+```
+
+```{r}
+event1356 %>% 
+  select(mandatory_covid_vaccination_t_cs) %>% 
+  filter(!is.na(mandatory_covid_vaccination_t_cs))
+```
+
+
+```{r}
+event1356 %>% 
+  select(other_comments) %>% 
+  filter(!is.na(other_comments))
+```
+
+```{r}
+event1356 %>% 
+  select(organisation) %>% 
+  filter(!is.na(organisation))
+```
+
+```{r}
+event1356 %>% 
+  filter(!str_detect(organisation, "^(?i)na"),
+         !str_detect(organisation, "Road"),
+         !str_detect(organisation, "6"),
+         !str_detect(organisation, "kennedy"),
+         !str_detect(organisation, "Douglas"),
+         !str_detect(organisation, "Miss"),
+         !str_detect(organisation, "Select"),
+         !str_detect(organisation, "none")
+         ) %>%
+  group_by(organisation) %>% 
+  count(organisation)
+```
+35 people from 28 organisation fill this part in, with 1677 not using it so would be worth taking this out.
+
+Removed from organisation: 
+
+  * Two house address 
+  * Two full names
+  * Someone title 
+  * Two miss inputs 
+
+
+```{r}
+event1356 %>% 
+  select(email) %>% 
+  mutate(email = str_replace(email, 
+                             pattern = "^[a-zA-Z0-9\\._%-]+@", 
+                             replacement = ""),
+         email = str_to_lower(email)) %>%
+  group_by(email) %>% 
+  count(email) %>% 
+  arrange(desc(n))
+```
+
+84 unique email domain. Coming from 48 providers or industry's. 
+
+
+```{r}
+event1356 %>% 
+  select(email) %>% 
+  mutate(email = str_replace(email, 
+                             pattern = "^[a-zA-Z0-9\\._%-]+@", 
+                             replacement = ""),
+         email = str_to_lower(email),
+         email = str_replace_all(email, 
+                                 pattern = "[a-z\\._%-]+.ac.uk",
+                                 replacement = "university"),
+         email = str_replace_all(email, 
+                                 pattern = "[a-z]+.edu",
+                                 replacement = "education"),
+         email = str_replace_all(email, 
+                                 pattern = "[a-z]+school[a-z]?",
+                                 replacement = "education"),
+         email = str_replace_all(email, 
+                                 pattern =  "[a-z]+academy[a-z\\.]?",
+                                 replacement = "education"),
+         email = str_replace_all(email, 
+                                 pattern = 
+                                             "[a-z]+.org",
+                                 replacement = "nonprofit"),
+         email = str_extract(email,
+                             pattern ="^[a-zA-Z0-9_%-]+"),
+         email = case_when(email == "hotmail" ~ "microsoft",
+                           email == "themcnaughts" ~ "microsoft",
+                           email == "outlook" ~ "microsoft",
+                           email == "live" ~ "microsoft",
+                           email == "msn" ~ "microsoft",
+                           email == "passport" ~ "microsoft",
+                           email == "gmail" ~ "google",
+                           email == "google" ~ "google",
+                           email == "googlemail" ~ "google",
+                           email == "icloud" ~ "apple",
+                           email == "me" ~ "apple",
+                           email == "mac" ~ "apple",
+                           email == "love" ~ "aol",
+                           email == "ygm" ~ "aol",
+                           email == "games" ~ "aol",
+                           email == "wow" ~ "aol",
+                           email == "ymail" ~ "yahoo",
+                           email == "cybg" ~ "virgin",
+                           email == "blueyonder" ~ "virgin",
+                           email == "virginmedia" ~ "virgin",
+                           email == "btconnect" ~ "bt",
+                           email == "btopenworld" ~ "bt",
+                           email == "btinternet" ~ "bt",
+                           email == "nonprofite" ~ "nonprofit",
+                           TRUE ~ email
+                           )
+         ) %>%
+  group_by(email) %>% 
+  count(email) %>% 
+  arrange(desc(n))
+```
+
+
