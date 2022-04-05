@@ -47,7 +47,37 @@ event1356 <- read_excel(
 
 event1356 <- event1356[-1,]
 event1356
+
+postcode <- read_csv("raw_data/ukpostcodes.csv")
+
+combine <- left_join(event1356, postcode, by = "postcode")
 ```
+
+```{r}
+combine %>% 
+  filter(is.na(latitude))
+```
+
+```{r}
+`%!in%` <- negate(`%in%`)
+
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+         #postcode = 
+           ) %>% 
+  left_join(postcode, by = "postcode") %>% 
+  select(postcode, latitude) %>% 
+  filter(is.na(latitude)) 
+  # filter(postcode == str_detect(postcode,
+  #                                  pattern = "^[0-9]{3,}"))
+```
+
+
+
+```{r}
+postcode
+```
+
 
 ```{r}
 
