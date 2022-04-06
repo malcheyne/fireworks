@@ -48,29 +48,88 @@ event1356 <- read_excel(
 event1356 <- event1356[-1,]
 event1356
 
-postcode <- read_csv("raw_data/ukpostcodes.csv")
+uk_postcode <- read_csv("raw_data/ukpostcodes.csv")
 
-combine <- left_join(event1356, postcode, by = "postcode")
+combine <- left_join(event1356, uk_postcode, by = "postcode")
 ```
 
 ```{r}
 combine %>% 
   filter(is.na(latitude))
 ```
+```{r}
+uk_postcode %>% 
+  filter(postcode == "ML9 1AQ")
+```
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "PH336 XE")
+```
+
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "FK5 4")
+```
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "FK9 5 JF")
+```
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "ML9 1AQ")
+```
+
 
 ```{r}
 `%!in%` <- negate(`%in%`)
 
 event1356 %>% 
   mutate(postcode = str_to_upper(postcode),
-         #postcode = 
-           ) %>% 
-  left_join(postcode, by = "postcode") %>% 
-  select(postcode, latitude) %>% 
+         postcode = trimws(postcode),
+         postcode = ifelse(nchar(postcode) < 6,
+         postcode,
+         ifelse(str_detect(postcode, "\\s"),
+                postcode,
+                paste0(substr(postcode, start = 1, stop = (nchar(postcode)-3)),
+                       " ", substr(postcode, start = (nchar(postcode)-2),
+                                   stop = nchar(postcode))))),
+         postcode = case_when( postcode == "FK10 WTF" ~ "FK10 2TF",
+                               postcode == "PH336 XE" ~ "PH33 6XE",
+                               postcode == "FK9 5 JF" ~ "FK9 5JF",
+                               postcode == "FK10 3 NR" ~ "FK10 3NR",
+                               postcode == "ML9  1AQ" ~ "ML9 1AQ",
+                               TRUE ~ postcode)
+          ) %>% 
+  left_join(uk_postcode, by = "postcode") %>% 
+  select(postcode, latitude) %>%
   filter(is.na(latitude)) 
   # filter(postcode == str_detect(postcode,
   #                                  pattern = "^[0-9]{3,}"))
 ```
+
+```{r}
+testcode <- c("EH1 1AD", "EH1 1AE", "EH13 5ED", "GA3 9RD", "FK15 8ED", "Fk81tu", "FK159DY", "69005", "FK54UP", "FK10 WTF", "FK94DQ", "FK102ET", "FK159JE", "FK95HQ", "PH20BL")
+
+ 
+ifelse(nchar(testcode) < 6,
+       testcode,
+       ifelse(str_detect(testcode, "\\s"),
+              testcode,
+              paste0(substr(testcode, start = 1, stop = (nchar(testcode)-3)),
+                     " ", substr(testcode, start = (nchar(testcode)-2),
+                                 stop = nchar(testcode)))))
+```
+
+
+
 
 ```{r}
 event1356 %>% 
