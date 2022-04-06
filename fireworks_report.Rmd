@@ -86,10 +86,27 @@ event1356 %>%
   mutate(postcode = str_to_upper(postcode)) %>% 
   filter(postcode %in% "ML9 1AQ")
 ```
-
+69005 45.7583° N, 4.7991° E Lyon
+20159 45.4982° N, 9.1918° E Milan
+56.0267° N, 3.8406° W
+08015 41.3786° N, 2.1524° E Barcelona
+75018 48.8913° N, 2.3530° E Paris
+97330 44.6385° N, 123.2929° W Oregon
+56.1492° N, 4.3579° W
+74960 35.7837° N, 94.6037° W Oklahoma
 
 ```{r}
-`%!in%` <- negate(`%in%`)
+non_uk_postcode <- data.frame(postcode = c("69005", "20159", "FK5 4",
+                                           "08015", "75018", "97330",
+                                           "FK8 -BO", "74960"),
+                              latitude = c("45.7583", "45.4982", "56.0267",
+                                           "41.3786", "48.8913", "44.6385",
+                                           "56.1492", "35.7837"),
+                              longitude = c("4.7991", "9.1918", "-3.8406",
+                                            "2.1524", "2.3530", "-123.2929",
+                                            "-4.3579", "-94.6037")) %>% 
+                    mutate(latitude = as.numeric(latitude),
+                           longitude = as.numeric(longitude))
 
 event1356 %>% 
   mutate(postcode = str_to_upper(postcode),
@@ -108,11 +125,19 @@ event1356 %>%
                                postcode == "ML9  1AQ" ~ "ML9 1AQ",
                                TRUE ~ postcode)
           ) %>% 
-  left_join(uk_postcode, by = "postcode") %>% 
+  left_join(uk_postcode, by = "postcode") %>%
+  left_join(non_uk_postcode, by = "postcode"
+              # c("postcode" = "postcode",
+              #                  "latitude" = "latitude",
+              #                  "longitude" = "longitude")
+            ) %>% 
+  mutate(latitude = coalesce(latitude.x, latitude.y),
+         longitude = coalesce(longitude.x, longitude.y)) %>% 
+  select(-"id", -"latitude.x", -"longitude.x",
+         -"latitude.y", -"longitude.y") %>%
   select(postcode, latitude) %>%
   filter(is.na(latitude)) 
-  # filter(postcode == str_detect(postcode,
-  #                                  pattern = "^[0-9]{3,}"))
+  
 ```
 
 ```{r}
