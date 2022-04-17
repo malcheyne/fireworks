@@ -12,13 +12,6 @@ output:
 <style>
 div.hidecode + pre {display: none}
 </style>
-
-<style>
-.leaflet {
-    margin: auto;
-}
-</style>
-
 <script>
 doclick=function(e){
 e.nextSibling.nextSibling.style.display="block";
@@ -53,24 +46,73 @@ event1356 <- read_excel(
               clean_names() 
 
 event1356 <- event1356[-1,]
-
+event1356
 
 uk_postcode <- read_csv("raw_data/ukpostcodes.csv")  
-
+                
 
 combine <- left_join(event1356, uk_postcode, by = "postcode")
 ```
 
+```{r}
+combine %>% 
+  filter(postcode == "JE3 2DX")
+```
 
+```{r}
+uk_postcode[uk_postcode$postcode=="JE3 2DX", "latitude"] <- 49.2534
+uk_postcode[uk_postcode$postcode=="JE3 2DX", "longitude"] <- -2.2494
+```
+
+```{r}
+leaf_map %>% 
+  filter(postcode == "JE3 2DX")
+```
 
 
 ```{r}
+combine %>% 
+  filter(is.na(latitude))
+```
+```{r}
+uk_postcode %>% 
+  filter(postcode == "ML9 1AQ")
+```
 
-# mistake in dataframe had Jersey at north pole
-uk_postcode[uk_postcode$postcode=="JE3 2DX", "latitude"] <- 49.2534
-uk_postcode[uk_postcode$postcode=="JE3 2DX", "longitude"] <- -2.2494
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "PH336 XE")
+```
 
 
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "FK5 4")
+```
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "FK9 5 JF")
+```
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode)) %>% 
+  filter(postcode %in% "ML9 1AQ")
+```
+69005 45.7583° N, 4.7991° E Lyon
+20159 45.4982° N, 9.1918° E Milan
+56.0267° N, 3.8406° W
+08015 41.3786° N, 2.1524° E Barcelona
+75018 48.8913° N, 2.3530° E Paris
+97330 44.6385° N, 123.2929° W Oregon
+56.1492° N, 4.3579° W
+74960 35.7837° N, 94.6037° W Oklahoma
+
+```{r}
 non_uk_postcode <- data.frame(postcode = c("69005", "20159", "FK5 4",
                                            "08015", "75018", "97330",
                                            "FK8 -BO", "74960"),
@@ -101,102 +143,42 @@ leaf_map <- event1356 %>%
                                TRUE ~ postcode)
           ) %>% 
   left_join(uk_postcode, by = "postcode") %>%
-  left_join(non_uk_postcode, by = "postcode"  
+  left_join(non_uk_postcode, by = "postcode"
+              # c("postcode" = "postcode",
+              #                  "latitude" = "latitude",
+              #                  "longitude" = "longitude")
             ) %>% 
   mutate(latitude = coalesce(latitude.x, latitude.y),
          longitude = coalesce(longitude.x, longitude.y)) %>% 
+  select(-"id", -"latitude.x", -"longitude.x",
+         -"latitude.y", -"longitude.y") %>%
   select(purchased_on, postcode, adult_ticket, 
          child_ticket_age_5_16,concession_ticket,
          family_discount_ticket_2_adults_and_2_children_5_16,
          family_discount_ticket_2_adults_and_3_children_5_16,
          student_bundle_4_x_students_with_id, 
          net_order_revenue_to_organiser, latitude, longitude) 
+  
+  
+#   select(postcode, latitude) %>%
+#   filter(is.na(latitude)) 
+  
 ```
-
-# Ticket Sales
-
-*Student Bundle - Is 4 students  
-*Family Bundle - Is a mix of 2 Adults and either 2 or 3 Kids
 
 ```{r}
 leaf_map %>% 
-  mutate(date = substr(purchased_on, 
-                       start = 6, stop = 10)) %>% 
-  pivot_longer(c(3:8), 
-               names_to = "ticket_type", 
-               values_to = "ticket_count") %>% 
-  mutate(
-    ticket_type = case_when(
-      ticket_type == "adult_ticket" ~ "Adult",
-      ticket_type == "child_ticket_age_5_16" ~ "Child",
-      ticket_type == "concession_ticket" ~ "Concession",
-      ticket_type == "family_discount_ticket_2_adults_and_2_children_5_16" ~ "Family Bundle",
-      ticket_type == "family_discount_ticket_2_adults_and_3_children_5_16" ~ "Family Bundle",
-      ticket_type == "student_bundle_4_x_students_with_id" ~ "Student Bundle",
-      TRUE ~ ticket_type)
-    ) %>% 
-  filter(!is.na(ticket_count)) %>% 
-  select( ticket_count, ticket_type) %>% 
-  group_by( ticket_type) %>%
-  summarise(ticket_count = sum(ticket_count), .groups = 'drop') %>%
-  ggplot(aes(y = ticket_type, x = ticket_count, fill = ticket_type)) +
-  geom_col(colour = "black") +
-  scale_fill_brewer(palette = "Reds") +
-  labs(title = "Ticket Sales",
-       y = "Ticket Type",
-       x = "Tickets Sold",
-       fill = "Ticket Type") +
-  theme(plot.title = element_text(hjust = 0.5)) 
-# +
-#   theme(legend.position = "none")
+  filter(postcode == "JE3 2DX")
 ```
-Ticket sales by type predominantly Adult tickets being sold, normally we thought we had a higher number of kids but this will be mixed in with the Family Bundle numbers.
+
 
 ```{r}
 leaf_map %>% 
-  mutate(date = substr(purchased_on, 
-                       start = 6, stop = 10)) %>% 
-  pivot_longer(c(3:8), 
-               names_to = "ticket_type", 
-               values_to = "ticket_count") %>% 
-  mutate(
-    ticket_type = case_when(
-      ticket_type == "adult_ticket" ~ "Adult",
-      ticket_type == "child_ticket_age_5_16" ~ "Child",
-      ticket_type == "concession_ticket" ~ "Concession",
-      ticket_type == "family_discount_ticket_2_adults_and_2_children_5_16" ~ "Family Bundle",
-      ticket_type == "family_discount_ticket_2_adults_and_3_children_5_16" ~ "Family Bundle",
-      ticket_type == "student_bundle_4_x_students_with_id" ~ "Student Bundle",
-      TRUE ~ ticket_type)
-    ) %>% 
-  filter(!is.na(ticket_count)) %>% 
-  select(date, ticket_count, ticket_type) %>% 
-  group_by(date, ticket_type) %>%
-  summarise(ticket_count = sum(ticket_count), .groups = 'drop') %>%
-  ggplot(aes(y = date, x = ticket_count, fill = ticket_type)) +
-  geom_col(colour = "black") +
-  scale_fill_brewer(palette = "Reds") +
-  labs(title = "Ticket Sales",
-       y = "Date",
-       x = "Tickets Sold",
-       fill = "Ticket Type") +
-  theme(plot.title = element_text(hjust = 0.5))
+  separate(postcode, c("postcode_outer", "postcode_inner"), " ") %>% 
+  # group_by(postcode_new) %>% 
+  # summarise(count = )
+  count(postcode_outer) %>% 
+  arrange(desc(n))
 ```
-Showing the sales per day and per type. Steady sale thorugh the month, real ramp up of sales in the last few days near the event when people would have a better idea of the whether.
-
-
-# Sales by Location
-
-Location have been determined by the postcode give, and will be where the payment card is addressed. Will have some like students can be living in Stirling but their card is registered to another home address. The Glasgow COP26 was happening at the same time so we will have had more people from outside of the area staying in hotel. 
-```{r}
-leaf_map %>% 
-  separate(postcode, c("postcode_area", "postcode_inner"), " ") %>% 
-  count(postcode_area) %>% 
-  rename(count = n) %>% 
-  arrange(desc(count))
-```
-Sale per postcodes. In order Alloa, south Stirling, Bridge of Allan, Dunblane and north Stirling make up the top 5 postcodes.
-
 
 ```{r}
 leaf_map %>% 
@@ -229,100 +211,18 @@ leaf_map %>%
                           postcode_outer == "TS" ~ "Cleveland",
                           postcode_outer == "WD" ~ "Watford",
                           postcode_outer == "YO" ~ "York",
-                          TRUE ~ postcode_outer)
+                          TRUE ~ postcode_outer
+                          )
          ) %>% 
+  # group_by(postcode_new) %>% 
+  # summarise(count = )
   count(areas) %>% 
-  rename(count = n) %>% 
-  arrange(desc(count))
+  arrange(desc(n))
 ```
-Sales broken down to postcode area, shows the main bulk has come from Stirling, Falkirk and Alloa areas. We would lose some if not all of these next bonfires night when Falkirk and Alloa look to restart there fireworks. 
+
+
 
 ```{r}
-leaf_map %>% 
-  separate(postcode, c("postcode_area", "postcode_inner"), " ") %>% 
-  filter(postcode_area %in% c("FK7", "FK8", "FK9", "FK15")) %>% 
-  count(postcode_area) %>% 
-  rename(count = n) %>% 
-  arrange(desc(count)) 
-```
-Filtering down to our normal table area of Dunblane, Bridge of Allan and Stirling area is 812 out of 1720 sales about 47%. We would have some over lap with other areas. We had about 1500 sales from the FK postcode areas about 82% of our sales that we could see some of them again.
-
-```{r}
-leaf_map %>%
-  separate(postcode, c("postcode_area", "postcode_inner"), " ") %>% 
-  filter(postcode_area %in% c("FK7", "FK8", "FK9", "FK15")) %>% 
-  mutate(date = substr(purchased_on, 
-                       start = 6, stop = 10)) %>% 
-  pivot_longer(c(4:9), 
-               names_to = "ticket_type", 
-               values_to = "ticket_count") %>% 
-  mutate(
-    ticket_type = case_when(
-      ticket_type == "adult_ticket" ~ "Adult",
-      ticket_type == "child_ticket_age_5_16" ~ "Child",
-      ticket_type == "concession_ticket" ~ "Concession",
-      ticket_type == "family_discount_ticket_2_adults_and_2_children_5_16" ~ "Family Bundle",
-      ticket_type == "family_discount_ticket_2_adults_and_3_children_5_16" ~ "Family Bundle",
-      ticket_type == "student_bundle_4_x_students_with_id" ~ "Student Bundle",
-      TRUE ~ ticket_type)
-    ) %>% 
-  filter(!is.na(ticket_count)) %>% 
-  select( ticket_count, ticket_type) %>% 
-  group_by( ticket_type) %>%
-  summarise(ticket_count = sum(ticket_count), .groups = 'drop') %>%
-  ggplot(aes(y = ticket_type, x = ticket_count, fill = ticket_type)) +
-  geom_col(colour = "black") +
-  scale_fill_brewer(palette = "Reds") +
-  scale_x_continuous(breaks = c(0, 100, 200, 300, 400, 500, 600,
-                                700, 800, 900, 1000, 1100, 1200)) +
-  labs(title = "Dunblane, Bridge of Allan and Stirling Ticket Sales",
-       y = "Ticket Type",
-       x = "Tickets Sold") +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(legend.position = "none")
-
-
-`%!in%` <- negate(`%in%`)
-
-leaf_map %>%
-  separate(postcode, c("postcode_area", "postcode_inner"), " ") %>% 
-  filter(postcode_area %!in% c("FK7", "FK8", "FK9", "FK15")) %>% 
-  mutate(date = substr(purchased_on, 
-                       start = 6, stop = 10)) %>% 
-  pivot_longer(c(4:9), 
-               names_to = "ticket_type", 
-               values_to = "ticket_count") %>% 
-  mutate(
-    ticket_type = case_when(
-      ticket_type == "adult_ticket" ~ "Adult",
-      ticket_type == "child_ticket_age_5_16" ~ "Child",
-      ticket_type == "concession_ticket" ~ "Concession",
-      ticket_type == "family_discount_ticket_2_adults_and_2_children_5_16" ~ "Family Bundle",
-      ticket_type == "family_discount_ticket_2_adults_and_3_children_5_16" ~ "Family Bundle",
-      ticket_type == "student_bundle_4_x_students_with_id" ~ "Student Bundle",
-      TRUE ~ ticket_type)
-    ) %>% 
-  filter(!is.na(ticket_count)) %>% 
-  select( ticket_count, ticket_type) %>% 
-  group_by( ticket_type) %>%
-  summarise(ticket_count = sum(ticket_count), .groups = 'drop') %>%
-  ggplot(aes(y = ticket_type, x = ticket_count, fill = ticket_type)) +
-  geom_col(colour = "black") +
-  scale_fill_brewer(palette = "Reds") +
-  scale_x_continuous(breaks = c(0, 100, 200, 300, 400, 500, 600,
-                                700, 800, 900, 1000, 1100, 1200)) +
-  labs(title = "Other Areas Ticket Sales",
-       y = "Ticket Type",
-       x = "Tickets Sold") +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(legend.position = "none")
-
-
-```
-Both our normal areas and other areas are similar in the spread of the types of tickets.
-
-
-```{r, message=FALSE, warning=FALSE, a}
 leaflet(data = leaf_map) %>%
       addTiles() %>%
       addMarkers(label = ~ postcode,
@@ -330,9 +230,170 @@ leaflet(data = leaf_map) %>%
                  clusterOptions = markerClusterOptions())
 ```
 
-The map shows we had a large number of people from outside our normal area, as mentioned some are students, people vising COP26 or tourists.  
 
-# Comments
+
+```{r}
+# getColor <- function(leaf_map) {
+#   
+#   sapply(leaf_map$postcode, function(postcode) {
+#     #case_when(leaf_map$adult_ticket > 0 ~ "green")
+#     if(leaf_map$adult_ticket > 0) {
+#     "green"
+#   } else if(date <= 1989-12-31) {
+#     "orange"
+#   } else {
+#     "red"
+#   }
+#   })
+#   
+# }
+# 
+# icons <- awesomeIcons(
+#   icon = 'ios-close',
+#   iconColor = 'black',
+#   library = 'ion',
+#   markerColor = getColor(leaf_map)
+# )
+# 
+# leaflet(data = leaf_map) %>%
+#       addTiles() %>%
+#       addMarkers(icon=icons,
+#                  label = ~ postcode,
+#                  popup = ~ postcode,
+#                  clusterOptions = markerClusterOptions())
+```
+
+
+
+```{r}
+testcode <- c("EH1 1AD", "EH1 1AE", "EH13 5ED", "GA3 9RD", "FK15 8ED", "Fk81tu", "FK159DY", "69005", "FK54UP", "FK10 WTF", "FK94DQ", "FK102ET", "FK159JE", "FK95HQ", "PH20BL")
+
+ 
+ifelse(nchar(testcode) < 6,
+       testcode,
+       ifelse(str_detect(testcode, "\\s"),
+              testcode,
+              paste0(substr(testcode, start = 1, stop = (nchar(testcode)-3)),
+                     " ", substr(testcode, start = (nchar(testcode)-2),
+                                 stop = nchar(testcode)))))
+```
+
+
+
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+         #postcode = 
+           ) %>% 
+  filter(str_detect(postcode, pattern = "^[0-9]{3,}"))
+```
+
+
+69005 45.7583° N, 4.7991° E Lyon
+20159 45.4982° N, 9.1918° E Milan
+08015 41.3786° N, 2.1524° E Barcelona
+75018 48.8913° N, 2.3530° E Paris
+97330 44.6385° N, 123.2929° W Oregon
+74960 35.7837° N, 94.6037° W Oklahoma
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "[0-9]+[A-Z]{2}$"),
+        gsub(postcode, "(^[A-Z]{2}+[0-9]{1,})([0-9]{1}+[A-Z]{2}$)", 
+             "\\1 \\2", gsub(" ", "", postcode)), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+```
+
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "[0-9]+[A-Z]{2}$"),
+        gsub("(^[A-Z]{2}+[0-9]{1,})([0-9]{1}+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "^[A-Z]{2}+[0-9]{1,}+[0-9]+[A-Z]{2}$"),
+        gsub("([0-9])([0-9]+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+  
+  Error: Problem with `mutate()` column `postcode`.
+i `postcode = if_else(...)`.
+x argument "x" is missing, with no default
+  
+  event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "[0-9]{2}+[A-Z]{2}$"),
+        gsub(postcode, "(^[A-Z]{2}+[0-9])([0-9]{1}+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+  
+  event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = if_else(str_detect(postcode,
+        pattern = "^[A-Z]{2}+[0-9]{1,}+[0-9]+[A-Z]{2}$"),
+        gsub(postcode, "(^[A-Z]{2}+[0-9])([0-9]{1}+[A-Z]{2}$)", "\\1 \\2"), postcode)
+           ) %>% 
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+  
+  Warning: Problem with `mutate()` column `postcode`.
+i `postcode = if_else(...)`.
+i argument 'pattern' has length > 1 and only the first element will be used
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = case_when(
+          postcode %in% "[0-9]{2}+[A-Z]{2}$" ~ " [0-9]+[A-Z]{2}$",
+          TRUE ~ postcode)
+           ) %>%
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+```
+
+```{r}
+event1356 %>% 
+  mutate(postcode = str_to_upper(postcode),
+        postcode = case_when(
+          postcode %in% "[0-9]{2}+[A-Z]{2}$" ~ gsub(postcode,
+                                      "(^[A-Z]{2}+[0-9])([0-9]{1}+[A-Z]{2}$)", 
+                                      "\\1 \\2", postcode),
+          TRUE ~ postcode)
+           ) %>%
+  filter(str_detect(postcode, pattern = "[0-9]{2}+[A-Z]{2}$"))
+```
+
+
+```{r}
+#postcode
+```
+
+
+```{r}
+
+```
+
+```{r}
+tail(event1356)
+```
+
+```{r}
+summary(event1356)  
+```
+
+```{r}
+event1356 %>% 
+  select(mandatory_covid_vaccination_t_cs) %>% 
+  filter(!is.na(mandatory_covid_vaccination_t_cs))
+```
+
 
 ```{r}
 event1356 %>% 
@@ -340,7 +401,11 @@ event1356 %>%
   filter(!is.na(other_comments))
 ```
 
-# Organisations
+```{r}
+event1356 %>% 
+  select(organisation) %>% 
+  filter(!is.na(organisation))
+```
 
 ```{r}
 event1356 %>% 
@@ -354,10 +419,7 @@ event1356 %>%
          !str_detect(organisation, "none")
          ) %>%
   group_by(organisation) %>% 
-  count(organisation) %>% 
-  rename(count = n) %>% 
-  arrange(desc(count))
-
+  count(organisation)
 ```
 35 people from 28 organisation fill this part in, with 1677 not using it so would be worth taking this field out next year.
 
@@ -368,7 +430,6 @@ Removed from organisation:
   * Someone title 
   * Two miss inputs 
 
-# Emails
 
 ```{r}
 event1356 %>% 
