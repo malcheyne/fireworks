@@ -147,8 +147,6 @@ leaf_map %>%
        x = "Tickets Sold",
        fill = "Ticket Type") +
   theme(plot.title = element_text(hjust = 0.5)) 
-# +
-#   theme(legend.position = "none")
 ```
 Ticket sales by type predominantly Adult tickets being sold, normally we thought we had a higher number of kids but this will be mixed in with the Family Bundle numbers.
 
@@ -202,33 +200,33 @@ Sale per postcodes. In order Alloa, south Stirling, Bridge of Allan, Dunblane an
 leaf_map %>% 
   separate(postcode, c("postcode_outer", "postcode_inner"), " ") %>% 
   mutate(postcode_outer = str_extract(postcode_outer, "^[A-Z]{1,}"),
-         areas = case_when(postcode_outer == "FK" ~ "Falkirk",
-                          postcode_outer == "G" ~ "Glasgow",
-                          postcode_outer == "PH" ~ "Perth",
-                          postcode_outer == "EH" ~ "Edinburgh",
-                          postcode_outer == "ML" ~ "Motherwell",
-                          postcode_outer == "KY" ~ "Kirkaldy",
-                          postcode_outer == "DD" ~ "Dundee",
+         areas = case_when(postcode_outer == "FK" ~ "FK - Falkirk",
+                          postcode_outer == "G" ~ "G - Glasgow",
+                          postcode_outer == "PH" ~ "PH - Perth",
+                          postcode_outer == "EH" ~ "EH - Edinburgh",
+                          postcode_outer == "ML" ~ "ML - Motherwell",
+                          postcode_outer == "KY" ~ "KY - Kirkaldy",
+                          postcode_outer == "DD" ~ "DD - Dundee",
                           is.na(postcode_outer) ~ "Non-UK",
-                          postcode_outer == "AB" ~ "Aberdeen",
-                          postcode_outer == "IV" ~ "Inverness",
-                          postcode_outer == "KA" ~ "Kilmarnock",
-                          postcode_outer == "NE" ~ "Newcastle",
-                          postcode_outer == "PA" ~ "Paisley",
-                          postcode_outer == "BT" ~ "Belfast",
-                          postcode_outer == "DG" ~ "Dumfries",
-                          postcode_outer == "BH" ~ "Bournemouth",
-                          postcode_outer == "CW" ~ "Crewe",
-                          postcode_outer == "HD" ~ "Huddersfield",
-                          postcode_outer == "HG" ~ "Harrogate",
-                          postcode_outer == "JE" ~ "Jersey",
-                          postcode_outer == "LA" ~ "Lancaster",
-                          postcode_outer == "LN" ~ "Lincoln",
-                          postcode_outer == "LS" ~ "Leeds",
-                          postcode_outer == "N" ~ "London",
-                          postcode_outer == "TS" ~ "Cleveland",
-                          postcode_outer == "WD" ~ "Watford",
-                          postcode_outer == "YO" ~ "York",
+                          postcode_outer == "AB" ~ "AB - Aberdeen",
+                          postcode_outer == "IV" ~ "IV - Inverness",
+                          postcode_outer == "KA" ~ "KA - Kilmarnock",
+                          postcode_outer == "NE" ~ "NE - Newcastle",
+                          postcode_outer == "PA" ~ "PA - Paisley",
+                          postcode_outer == "BT" ~ "BT - Belfast",
+                          postcode_outer == "DG" ~ "DG - Dumfries",
+                          postcode_outer == "BH" ~ "BH - Bournemouth",
+                          postcode_outer == "CW" ~ "CW - Crewe",
+                          postcode_outer == "HD" ~ "HD - Huddersfield",
+                          postcode_outer == "HG" ~ "HG - Harrogate",
+                          postcode_outer == "JE" ~ "JE - Jersey",
+                          postcode_outer == "LA" ~ "LA - Lancaster",
+                          postcode_outer == "LN" ~ "LN - Lincoln",
+                          postcode_outer == "LS" ~ "LS - Leeds",
+                          postcode_outer == "N" ~ "N - London",
+                          postcode_outer == "TS" ~ "TS - Cleveland",
+                          postcode_outer == "WD" ~ "WD - Watford",
+                          postcode_outer == "YO" ~ "YO - York",
                           TRUE ~ postcode_outer)
          ) %>% 
   count(areas) %>% 
